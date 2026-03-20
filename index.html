@@ -168,7 +168,9 @@
             transform: translateX(-46%);
             width: 108%;
             max-width: 430px;
+            max-height: 45%;
             height: auto;
+            object-fit: contain;
             z-index: 3;
             pointer-events: none;
         }
@@ -955,6 +957,83 @@
         .promo-toast .toast-icon { font-size: 22px; margin-bottom: 4px; }
         .promo-toast .toast-title { font-size: 16px; font-weight: 700; }
         .promo-toast .toast-sub { font-size: 13px; opacity: 0.9; font-weight: 500; margin-top: 2px; }
+
+        /* ===== RESPONSIVE: Medium-small phones (iPhone 8, etc) ===== */
+        @media (max-height: 740px) {
+            .home-top .logo { top: 20px; }
+            .home-top .subtitle { top: 52px; }
+            .home-top .product-card.spotify { top: 78px; }
+            .home-top .product-card.chatgpt { top: 158px; }
+            .mascot-main { top: 26%; width: 95%; max-width: 380px; }
+            .small-btn { height: 64px; }
+            .small-btn .btn-text { font-size: 19px; }
+            .small-btn .btn-icon { height: 58px; }
+            .home-bottom { bottom: 3%; }
+        }
+
+        /* ===== RESPONSIVE: Small phones (iPhone SE, Galaxy S8, etc) ===== */
+        @media (max-height: 600px) {
+            .home-top .logo { top: 10px; }
+            .home-top .subtitle { top: 38px; }
+            .home-top .product-card.spotify { top: 60px; }
+            .home-top .product-card.chatgpt { top: 130px; }
+            .product-card { height: 62px; }
+            .product-card .card-text { font-size: 19px; }
+            .mascot-main { top: 24%; width: 85%; max-width: 320px; }
+            .small-btn { height: 56px; }
+            .small-btn .btn-text { font-size: 17px; }
+            .small-btn .btn-icon { height: 50px; }
+            .home-bottom { bottom: 2%; }
+            .small-buttons { row-gap: 10px; column-gap: 8px; }
+        }
+
+        /* Very small phones (iPhone SE 1st gen, 320px wide) */
+        @media (max-width: 360px) {
+            .product-card .card-text { font-size: 18px; }
+            .small-btn .btn-text { font-size: 17px; }
+            .sub-card .sub-title { font-size: 18px; }
+            .sub-card .sub-price { font-size: 21px; }
+            .detail-card .detail-title { font-size: 18px; }
+            .detail-card .detail-price { font-size: 21px; }
+            .faq-card .faq-question { font-size: 16px; }
+            .help-card .help-title { font-size: 18px; }
+            .success-title { font-size: 23px; }
+            .checking-title, .declined-title { font-size: 19px; }
+            .pay-btn { font-size: 17px; height: 60px; }
+            .submit-btn { font-size: 17px; height: 54px; }
+        }
+
+        /* ===== RESPONSIVE: Large phones (iPhone Plus/Max, etc) ===== */
+        @media (min-height: 850px) and (max-width: 500px) {
+            .home-top .product-card.spotify { top: 100px; }
+            .home-top .product-card.chatgpt { top: 186px; }
+            .mascot-main { top: 26%; width: 100%; max-width: 400px; }
+            .home-bottom { bottom: 4%; }
+            .small-btn { height: 76px; }
+            .small-btn .btn-text { font-size: 22px; }
+        }
+
+        /* ===== RESPONSIVE: Tablets (iPad Mini, iPad, etc) ===== */
+        @media (min-width: 600px) {
+            .screen { padding: 16px 24px; padding-bottom: 40px; max-width: 540px; margin: 0 auto; }
+            .home-screen { max-width: 100%; }
+            .home-top { max-width: 540px; left: 50%; transform: translateX(-50%); }
+            .home-top { max-width: 500px; }
+            .home-bottom { max-width: 500px; left: 50%; transform: translateX(-50%); right: auto; bottom: 2%; }
+            .mascot-main { max-width: 360px; max-height: 36%; top: 26%; }
+            .product-card { max-width: 100%; }
+            .success-block { max-width: 440px; }
+            .small-btn { height: 80px; }
+            .small-btn .btn-text { font-size: 23px; }
+        }
+
+        /* ===== RESPONSIVE: Large tablets / landscape ===== */
+        @media (min-width: 900px) {
+            .screen { max-width: 600px; }
+            .home-top { max-width: 600px; }
+            .home-bottom { max-width: 600px; }
+            .mascot-main { max-width: 400px; max-height: 36%; }
+        }
 
     </style>
 </head>
