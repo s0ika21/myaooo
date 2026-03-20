@@ -17,6 +17,27 @@ exports.handler = async (event) => {
     try {
         if (event.httpMethod === "OPTIONS") return cors(200, "");
 
+        // Debug: test raw fetch to Supabase
+        if (event.queryStringParameters && event.queryStringParameters.debug === "fetch") {
+            const url = process.env.SUPABASE_URL + "/rest/v1/orders?select=id&limit=1";
+            const key = process.env.SUPABASE_KEY;
+            const res = await fetch(url, {
+                headers: {
+                    "apikey": key,
+                    "Authorization": "Bearer " + key
+                }
+            });
+            const text = await res.text();
+            return cors(200, {
+                fetchStatus: res.status,
+                fetchUrl: url.substring(0, 50),
+                keyLen: key ? key.length : 0,
+                keyStart: key ? key.substring(0, 10) : "none",
+                keyEnd: key ? key.substring(key.length - 10) : "none",
+                response: text.substring(0, 200)
+            });
+        }
+
         if (event.httpMethod === "POST") {
             const body = JSON.parse(event.body);
             const id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
