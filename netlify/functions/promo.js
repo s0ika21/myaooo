@@ -1,4 +1,4 @@
-const { getStore } = require("@netlify/blobs");
+const { createClient } = require("@supabase/supabase-js");
 
 function cors(statusCode, body) {
     return {
@@ -9,79 +9,78 @@ function cors(statusCode, body) {
             "Access-Control-Allow-Headers": "Content-Type,Authorization",
             "Content-Type": "application/json"
         },
-        body: typeof body === "string" ? body : JSON.stringify(body)
+        body: JSON.stringify(body)
     };
 }
 
 exports.handler = async (event) => {
-    if (event.httpMethod === "OPTIONS") return cors(200, "");
+    try {
+        if (event.httpMethod === "OPTIONS") return cors(200, "");
+        const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-    const store = getStore("promos");
-    const indexStore = getStore("indexes");
-
-    if (event.httpMethod === "GET") {
-        let codes = [];
-        try { codes = await indexStore.get("promos_all", { type: "json" }) || []; } catch {}
-        const promos = [];
-        for (const code of codes) {
-            try {
-                const p = await store.get(code, { type: "json" });
-                if (p) promos.push(p);
-            } catch {}
+        if (event.httpMethod === "GET") {
+            const { data, error } = await db.from("promos").select("*").order("created_at", { ascending: false });
+            if (error) return cors(500, { error: error.message });
+            return cors(200, data.map(toCamel));
         }
-        return cors(200, promos);
-    }
 
-    if (event.httpMethod === "POST") {
-        const { code, discountType, discountValue, maxUses, expiresAt, active } = JSON.parse(event.body);
-        if (!code || !discountType || !discountValue) {
-            return cors(400, { error: "code, discountType, and discountValue are required" });
+        if (event.httpMethod === "POST") {
+            const body = JSON.parse(event.body);
+            if (!body.code || !body.discountType || !body.discountValue) {
+                return cors(400, { error: "code, discountType, and discountValue are required" });
+            }
+            const promo = {
+                code: body.code.toUpperCase(),
+                discount_type: body.discountType,
+                discount_value: body.discountValue,
+                max_uses: body.maxUses || null,
+                used_count: 0,
+                expires_at: body.expiresAt || null,
+                active: body.active !== undefined ? body.active : true
+            };
+            const { data, error } = await db.from("promos").upsert(promo).select().single();
+            if (error) return cors(500, { error: error.message });
+            return cors(201, { success: true, promo: toCamel(data) });
         }
-        const promo = {
-            code: code.toUpperCase(),
-            discountType,
-            discountValue,
-            maxUses: maxUses || null,
-            usedCount: 0,
-            expiresAt: expiresAt || null,
-            active: active !== undefined ? active : true,
-            createdAt: new Date().toISOString()
-        };
-        await store.setJSON(promo.code, promo);
-        let allCodes = [];
-        try { allCodes = await indexStore.get("promos_all", { type: "json" }) || []; } catch {}
-        if (!allCodes.includes(promo.code)) {
-            allCodes.push(promo.code);
-            await indexStore.setJSON("promos_all", allCodes);
+
+        if (event.httpMethod === "DELETE") {
+            const { code } = JSON.parse(event.body);
+            if (!code) return cors(400, { error: "code is required" });
+            const { error } = await db.from("promos").delete().eq("code", code.toUpperCase());
+            if (error) return cors(500, { error: error.message });
+            return cors(200, { success: true });
         }
-        return cors(201, { success: true, promo });
-    }
 
-    if (event.httpMethod === "DELETE") {
-        const { code } = JSON.parse(event.body);
-        if (!code) return cors(400, { error: "code is required" });
-        const upperCode = code.toUpperCase();
-        await store.delete(upperCode);
-        let allCodes = [];
-        try { allCodes = await indexStore.get("promos_all", { type: "json" }) || []; } catch {}
-        const filtered = allCodes.filter(c => c !== upperCode);
-        await indexStore.setJSON("promos_all", filtered);
-        return cors(200, { success: true });
-    }
+        if (event.httpMethod === "PATCH") {
+            const body = JSON.parse(event.body);
+            const { code, ...fields } = body;
+            if (!code) return cors(400, { error: "code is required" });
+            const update = {};
+            if (fields.active !== undefined) update.active = fields.active;
+            if (fields.discountType) update.discount_type = fields.discountType;
+            if (fields.discountValue) update.discount_value = fields.discountValue;
+            if (fields.maxUses !== undefined) update.max_uses = fields.maxUses;
+            if (fields.expiresAt !== undefined) update.expires_at = fields.expiresAt;
+            const { data, error } = await db.from("promos").update(update).eq("code", code.toUpperCase()).select().single();
+            if (error) return cors(404, { error: "Promo not found" });
+            return cors(200, { success: true, promo: toCamel(data) });
+        }
 
-    if (event.httpMethod === "PATCH") {
-        const body = JSON.parse(event.body);
-        const { code, ...fieldsToUpdate } = body;
-        if (!code) return cors(400, { error: "code is required" });
-        const upperCode = code.toUpperCase();
-        let promo;
-        try { promo = await store.get(upperCode, { type: "json" }); } catch {}
-        if (!promo) return cors(404, { error: "Promo not found" });
-        Object.assign(promo, fieldsToUpdate);
-        promo.code = upperCode;
-        await store.setJSON(upperCode, promo);
-        return cors(200, { success: true, promo });
+        return cors(405, { error: "Method not allowed" });
+    } catch (err) {
+        return cors(500, { error: err.message });
     }
-
-    return cors(405, { error: "Method not allowed" });
 };
+
+function toCamel(row) {
+    return {
+        code: row.code,
+        discountType: row.discount_type,
+        discountValue: row.discount_value,
+        maxUses: row.max_uses,
+        usedCount: row.used_count,
+        expiresAt: row.expires_at,
+        active: row.active,
+        createdAt: row.created_at
+    };
+}

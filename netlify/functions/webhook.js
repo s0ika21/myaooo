@@ -1,4 +1,4 @@
-const { getStore } = require("@netlify/blobs");
+const { createClient } = require("@supabase/supabase-js");
 
 function cors(statusCode, body) {
     return {
@@ -9,38 +9,33 @@ function cors(statusCode, body) {
             "Access-Control-Allow-Headers": "Content-Type,Authorization",
             "Content-Type": "application/json"
         },
-        body: typeof body === "string" ? body : JSON.stringify(body)
+        body: JSON.stringify(body)
     };
 }
 
 exports.handler = async (event) => {
-    if (event.httpMethod === "OPTIONS") return cors(200, "");
-    if (event.httpMethod !== "POST") return cors(405, { error: "Method not allowed" });
+    try {
+        if (event.httpMethod === "OPTIONS") return cors(200, "");
+        if (event.httpMethod !== "POST") return cors(405, { error: "Method not allowed" });
 
-    const { orderId, transactionStatus } = JSON.parse(event.body);
+        const { orderId, transactionStatus } = JSON.parse(event.body);
+        if (!orderId) return cors(200, { received: true, error: "No orderId" });
 
-    if (!orderId) return cors(200, { received: true, error: "No orderId" });
+        const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+        const { data: order, error } = await db.from("orders").select("*").eq("id", orderId).single();
+        if (error || !order) return cors(200, { received: true, error: "Order not found" });
 
-    const store = getStore("orders");
-    let order;
-    try { order = await store.get(orderId, { type: "json" }); } catch {}
-    if (!order) return cors(200, { received: true, error: "Order not found" });
-
-    if (transactionStatus === "Paid") {
-        order.status = "paid";
-        await store.setJSON(orderId, order);
-
-        if (order.promoCode) {
-            const promoStore = getStore("promos");
-            try {
-                const promo = await promoStore.get(order.promoCode.toUpperCase(), { type: "json" });
-                if (promo) {
-                    promo.usedCount = (promo.usedCount || 0) + 1;
-                    await promoStore.setJSON(order.promoCode.toUpperCase(), promo);
-                }
-            } catch {}
+        if (transactionStatus === "Paid") {
+            await db.from("orders").update({ status: "paid" }).eq("id", orderId);
+            if (order.promo_code) {
+                await db.from("promos")
+                    .update({ used_count: (order.used_count || 0) + 1 })
+                    .eq("code", order.promo_code);
+            }
         }
-    }
 
-    return cors(200, { received: true });
+        return cors(200, { received: true });
+    } catch (err) {
+        return cors(200, { received: true });
+    }
 };
