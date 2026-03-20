@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Spotitop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+    <link rel="preload" href="assets/mascot-main.webp" as="image" type="image/webp">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://puzzlebot.top/webapp.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html { height: 100%; }
         body {
-            font-family: 'Suisse Intl', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
             min-height: 100%;
             color: #fff;
             overflow-x: hidden;
@@ -63,7 +67,7 @@
 
         /* ===== LOGO ===== */
         .logo {
-            font-family: 'Benzin', 'Inter', sans-serif;
+            font-family: 'Nunito', 'Inter', sans-serif;
             font-size: 22px;
             font-weight: 900;
             color: #fff;
@@ -170,7 +174,7 @@
         }
         .home-bottom {
             position: absolute;
-            bottom: 3.2%;
+            bottom: 5%;
             left: 10px;
             right: 10px;
             z-index: 2;
@@ -270,7 +274,7 @@
         }
         .small-btn .btn-text {
             font-size: 21px;
-            font-weight: 600;
+            font-weight: 800;
             color: #202020;
             position: relative;
             z-index: 1;
@@ -295,7 +299,7 @@
             flex-direction: column;
             justify-content: center;
             padding: 22px 22px 18px;
-            margin-bottom: 16px;
+            margin-bottom: 22px;
             cursor: pointer;
             overflow: hidden;
             transition: transform 0.15s ease;
@@ -855,8 +859,102 @@
         .success-btn.green { background: #00D755; }
         .success-btn.purple { background: #4222D2; }
 
+        /* ===== PAYMENT CHECKING SCREEN ===== */
+        .checking-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 30px 40px;
+            text-align: center;
+        }
+        .spinner {
+            width: 64px;
+            height: 64px;
+            border: 5px solid rgba(255,255,255,0.2);
+            border-top: 5px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 28px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .checking-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 10px;
+            letter-spacing: -0.05em;
+        }
+        .checking-desc {
+            font-size: 15px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
+            letter-spacing: -0.03em;
+        }
+
+        /* ===== DECLINED SCREEN ===== */
+        .declined-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 30px 40px;
+            text-align: center;
+        }
+        .declined-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #D9420A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 24px;
+        }
+        .declined-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 10px;
+            letter-spacing: -0.05em;
+        }
+        .declined-desc {
+            font-size: 15px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            margin-bottom: 32px;
+        }
+
         /* ===== BOTTOM SPACER ===== */
         .bottom-spacer { height: 40px; }
+
+        /* ===== PROMO TOAST ===== */
+        .promo-toast {
+            position: fixed;
+            top: -120px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 28px;
+            border-radius: 18px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            z-index: 9999;
+            transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            max-width: 88%;
+            min-width: 260px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+            letter-spacing: -0.03em;
+        }
+        .promo-toast.show { top: 24px; }
+        .promo-toast.success { background: linear-gradient(135deg, #00D755, #00B748); }
+        .promo-toast.error { background: linear-gradient(135deg, #D9420A, #FF5722); }
+        .promo-toast .toast-icon { font-size: 22px; margin-bottom: 4px; }
+        .promo-toast .toast-title { font-size: 16px; font-weight: 700; }
+        .promo-toast .toast-sub { font-size: 13px; opacity: 0.9; font-weight: 500; margin-top: 2px; }
 
     </style>
 </head>
@@ -908,7 +1006,7 @@
     </div>
 
     <!-- Big mascot -->
-    <img class="mascot-main" src="assets/mascot-main.png" alt="">
+    <img class="mascot-main" src="assets/mascot-main.webp" alt="">
 
     <!-- Bottom buttons -->
     <div class="home-bottom">
@@ -1005,7 +1103,7 @@
         <button class="promo-apply" onclick="applyPromo('spotify')">Применить</button>
     </div>
 
-    <img class="detail-mascot" id="detail-mascot-spotify" src="assets/sp1.png" alt="">
+    <img class="detail-mascot" id="detail-mascot-spotify" src="assets/sp1.webp" alt="">
 
 
     <button class="pay-btn" id="pay-btn-spotify" onclick="goToForm('spotify')">Оплатить 999 ₽</button>
@@ -1031,7 +1129,7 @@
         <button class="promo-apply" onclick="applyPromo('chatgpt')">Применить</button>
     </div>
 
-    <img class="detail-mascot" src="assets/mascot-chatgpt.png" alt="">
+    <img class="detail-mascot" src="assets/mascot-chatgpt.webp" alt="">
 
 
     <button class="pay-btn" onclick="goToForm('chatgpt')">Оплатить 2 999 ₽</button>
@@ -1062,7 +1160,7 @@
         </div>
     </div>
 
-    <img class="form-mascot" src="assets/mascot-form.png" alt="">
+    <img class="form-mascot" src="assets/mascot-form.webp" alt="">
 
     <button class="submit-btn" onclick="submitForm()">Отправить</button>
 </div>
@@ -1076,29 +1174,7 @@
         <div class="logo">Spoti<span class="green">top</span></div>
     </div>
 
-    <div id="orders-list">
-        <div class="order-card">
-            <div class="order-info">
-                <span class="order-title">Spotify 3 месяца</span>
-                <span class="order-status ready">готов</span>
-            </div>
-            <span class="order-date">10.03.2026</span>
-        </div>
-        <div class="order-card">
-            <div class="order-info">
-                <span class="order-title">Spotify 12 месяцев</span>
-                <span class="order-status cancelled">отменен</span>
-            </div>
-            <span class="order-date">05.02.2025</span>
-        </div>
-        <div class="order-card">
-            <div class="order-info">
-                <span class="order-title">Spotify 6 месяцев</span>
-                <span class="order-status pending">выполняется</span>
-            </div>
-            <span class="order-date">05.02.2023</span>
-        </div>
-    </div>
+    <div id="orders-list"></div>
 </div>
 
 <!-- ==================== SCREEN: FAQ ==================== -->
@@ -1236,131 +1312,399 @@
     </div>
 </div>
 
+<!-- ==================== SCREEN: CHECKING PAYMENT ==================== -->
+<div class="screen" id="screen-checking">
+    <div class="header">
+        <div style="width:56px"></div>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+    <div class="checking-block">
+        <div class="spinner"></div>
+        <div class="checking-title">Проверяем оплату...</div>
+        <div class="checking-desc">Это займёт несколько секунд</div>
+    </div>
+</div>
+
+<!-- ==================== SCREEN: DECLINED ==================== -->
+<div class="screen" id="screen-declined">
+    <div class="header">
+        <div style="width:56px"></div>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+    <div class="declined-block">
+        <div class="declined-icon">✕</div>
+        <div class="declined-title">Оплата не прошла</div>
+        <div class="declined-desc">Платёж был отклонён. Проверьте данные карты или попробуйте другой способ оплаты.</div>
+        <button class="success-btn green" onclick="showScreen('screen-home')">Попробовать снова</button>
+        <button class="success-btn purple" onclick="openSupport()">Написать в поддержку</button>
+    </div>
+</div>
+
+<!-- Promo toast notification -->
+<div class="promo-toast" id="promoToast"></div>
+
 <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-        tg.ready();
-        tg.expand();
-        try { tg.setHeaderColor('#4360F6'); } catch(e) {}
-        try { tg.setBackgroundColor('#4360F6'); } catch(e) {}
+const tg = window.Telegram?.WebApp;
+if (tg) {
+    tg.ready();
+    tg.expand();
+    try { tg.setHeaderColor('#4360F6'); } catch(e) {}
+    try { tg.setBackgroundColor('#4360F6'); } catch(e) {}
+}
+
+const API_BASE = '';
+let currentScreen = 'screen-home';
+let currentService = 'spotify';
+let currentMonths = 1;
+let currentPrice = 999;
+let currentDiscount = 0;
+let currentPromoCode = null;
+let currentFinalPrice = null;
+
+// ===== CHECK PAYMENT RETURN =====
+(function checkPaymentReturn() {
+    var params = new URLSearchParams(window.location.search);
+    var paymentStatus = params.get('payment');
+    var pendingOrderId = localStorage.getItem('pending_order_id');
+
+    if (!pendingOrderId) return;
+    if (!paymentStatus) return;
+
+    // Clean URL and localStorage
+    history.replaceState(null, '', window.location.pathname);
+    localStorage.removeItem('pending_order_id');
+
+    if (paymentStatus === 'fail') {
+        showScreen('screen-declined');
+        return;
     }
 
-    let currentScreen = 'screen-home';
-    let currentService = 'spotify';
-    let currentMonths = 1;
-    let currentPrice = 999;
+    if (paymentStatus === 'success') {
+        // Show checking screen with spinner
+        showScreen('screen-checking');
 
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        currentScreen = id;
-        window.scrollTo(0, 0);
-    }
+        // Poll payment status via Wata API
+        var pollCount = 0;
+        var maxPolls = 15;
+        var pollInterval = setInterval(async function() {
+            pollCount++;
+            try {
+                var resp = await fetch(API_BASE + '/api/payment/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: pendingOrderId })
+                });
+                var data = await resp.json();
 
-    function openDetail(service, months, price) {
-        currentService = service;
-        currentMonths = months;
-        currentPrice = price;
-        const monthText = months === 1 ? 'месяц' : months < 5 ? 'месяца' : 'месяцев';
-
-        if (service === 'spotify') {
-            document.getElementById('detail-title-spotify').textContent = `Spotify ${months} ${monthText}`;
-            document.getElementById('detail-desc-spotify').innerHTML = `Подписка Spotify Premium<br>на ${months} ${monthText}`;
-            document.getElementById('detail-price-spotify').textContent = price.toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('pay-btn-spotify').textContent = `Оплатить ${price.toLocaleString('ru-RU')} ₽`;
-            
-            // Меняем картинку в зависимости от количества месяцев
-            const mascotImg = document.getElementById('detail-mascot-spotify');
-            if (months === 1) {
-                mascotImg.src = 'assets/sp1.png';
-            } else if (months === 3) {
-                mascotImg.src = 'assets/sp3.png';
-            } else if (months === 6) {
-                mascotImg.src = 'assets/sp6.png';
-            } else if (months === 12) {
-                mascotImg.src = 'assets/sp12.png';
+                if (data.status === 'paid') {
+                    clearInterval(pollInterval);
+                    showScreen('screen-success');
+                } else if (data.status === 'declined') {
+                    clearInterval(pollInterval);
+                    showScreen('screen-declined');
+                } else if (pollCount >= maxPolls) {
+                    clearInterval(pollInterval);
+                    // Wata redirected to success, trust it
+                    showScreen('screen-success');
+                }
+            } catch(e) {
+                if (pollCount >= maxPolls) {
+                    clearInterval(pollInterval);
+                    showScreen('screen-success');
+                }
             }
-            
-            showScreen('screen-spotify-detail');
-        }
+        }, 3000);
     }
+})();
 
-    function goToForm(service) {
-        currentService = service;
-        const loginInput = document.getElementById('form-login');
-        loginInput.placeholder = service === 'spotify'
-            ? 'Логин (почта) от аккаунта Spotify'
-            : 'Логин (почта) от аккаунта';
-        showScreen('screen-form');
+function getTgUser() {
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        return tg.initDataUnsafe.user;
     }
+    return { id: 'dev_user_123', username: 'dev_tester' };
+}
 
-    function toggleAccount(hasAccount) {
-        const btnHas = document.getElementById('toggle-has');
-        const btnNo = document.getElementById('toggle-no');
-        const formHas = document.getElementById('form-has-account');
-        const formNo = document.getElementById('form-no-account');
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+    currentScreen = id;
+    window.scrollTo(0, 0);
+    if (id === 'screen-orders') loadOrders();
+}
 
-        if (hasAccount) {
-            btnHas.className = 'toggle-btn active';
-            btnNo.className = 'toggle-btn inactive';
-            formHas.style.display = 'block';
-            formNo.style.display = 'none';
+function openDetail(service, months, price) {
+    currentService = service;
+    currentMonths = months;
+    currentPrice = price;
+    currentDiscount = 0;
+    currentPromoCode = null;
+    currentFinalPrice = price;
+
+    var monthText = months === 1 ? 'месяц' : months < 5 ? 'месяца' : 'месяцев';
+
+    if (service === 'spotify') {
+        document.getElementById('detail-title-spotify').textContent = 'Spotify ' + months + ' ' + monthText;
+        document.getElementById('detail-desc-spotify').innerHTML = 'Подписка Spotify Premium<br>на ' + months + ' ' + monthText;
+        document.getElementById('detail-price-spotify').textContent = price.toLocaleString('ru-RU') + ' ₽';
+        document.getElementById('pay-btn-spotify').textContent = 'Оплатить ' + price.toLocaleString('ru-RU') + ' ₽';
+
+        var mascotImg = document.getElementById('detail-mascot-spotify');
+        if (months === 1) mascotImg.src = 'assets/sp1.webp';
+        else if (months === 3) mascotImg.src = 'assets/sp3.webp';
+        else if (months === 6) mascotImg.src = 'assets/sp6.webp';
+        else if (months === 12) mascotImg.src = 'assets/sp12.webp';
+
+        // Reset promo input
+        var promoInput = document.getElementById('promo-spotify');
+        if (promoInput) { promoInput.value = ''; promoInput.style.border = 'none'; }
+
+        showScreen('screen-spotify-detail');
+    }
+}
+
+function goToForm(service) {
+    currentService = service;
+    var loginInput = document.getElementById('form-login');
+    loginInput.placeholder = service === 'spotify'
+        ? 'Логин (почта) от аккаунта Spotify'
+        : 'Логин (почта) от аккаунта';
+    showScreen('screen-form');
+}
+
+function toggleAccount(hasAccount) {
+    var btnHas = document.getElementById('toggle-has');
+    var btnNo = document.getElementById('toggle-no');
+    var formHas = document.getElementById('form-has-account');
+    var formNo = document.getElementById('form-no-account');
+    if (hasAccount) {
+        btnHas.className = 'toggle-btn active';
+        btnNo.className = 'toggle-btn inactive';
+        formHas.style.display = 'block';
+        formNo.style.display = 'none';
+    } else {
+        btnHas.className = 'toggle-btn inactive';
+        btnNo.className = 'toggle-btn active';
+        formHas.style.display = 'none';
+        formNo.style.display = 'block';
+    }
+}
+
+// ===== TOAST NOTIFICATION =====
+function showPromoToast(type, icon, title, sub) {
+    var toast = document.getElementById('promoToast');
+    toast.className = 'promo-toast ' + type;
+    toast.innerHTML = '<div class="toast-icon">' + icon + '</div><div class="toast-title">' + title + '</div>' + (sub ? '<div class="toast-sub">' + sub + '</div>' : '');
+    setTimeout(function() { toast.classList.add('show'); }, 10);
+    setTimeout(function() { toast.classList.remove('show'); }, 3000);
+}
+
+// ===== PROMO CODE VALIDATION =====
+async function applyPromo(service) {
+    var input = document.getElementById('promo-' + service);
+    var code = input.value.trim();
+    if (!code) return;
+
+    try {
+        var resp = await fetch(API_BASE + '/api/promo/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code, price: currentPrice })
+        });
+        var data = await resp.json();
+
+        if (resp.ok && data.valid) {
+            currentDiscount = data.discount;
+            currentPromoCode = code;
+            currentFinalPrice = data.finalPrice;
+
+            // Update pay button
+            var btn = document.getElementById('pay-btn-' + service);
+            if (btn) {
+                btn.textContent = 'Оплатить ' + data.finalPrice.toLocaleString('ru-RU') + ' ₽';
+            }
+            // Update price display
+            if (service === 'spotify') {
+                var priceEl = document.getElementById('detail-price-spotify');
+                if (priceEl) {
+                    priceEl.innerHTML = '<span style="text-decoration:line-through;opacity:0.5;font-size:18px;">' + currentPrice.toLocaleString('ru-RU') + ' ₽</span> ' + data.finalPrice.toLocaleString('ru-RU') + ' ₽';
+                }
+            }
+            input.style.border = '2px solid #00D755';
+            input.style.borderRadius = '10px';
+
+            showPromoToast('success', '🎉', 'Промокод применён!', 'Скидка ' + data.discount.toLocaleString('ru-RU') + ' ₽ — итого ' + data.finalPrice.toLocaleString('ru-RU') + ' ₽');
         } else {
-            btnHas.className = 'toggle-btn inactive';
-            btnNo.className = 'toggle-btn active';
-            formHas.style.display = 'none';
-            formNo.style.display = 'block';
+            currentDiscount = 0;
+            currentPromoCode = null;
+            currentFinalPrice = currentPrice;
+            input.style.border = '2px solid #D9420A';
+            input.style.borderRadius = '10px';
+
+            var errorMsg = data.error || 'Промокод недействителен';
+            showPromoToast('error', '❌', 'Ошибка', errorMsg);
+
+            // Reset button
+            var btn = document.getElementById('pay-btn-' + service);
+            if (btn) {
+                btn.textContent = 'Оплатить ' + currentPrice.toLocaleString('ru-RU') + ' ₽';
+            }
         }
+    } catch(e) {
+        console.error('Promo validation error:', e);
+        showPromoToast('error', '⚠️', 'Ошибка сети', 'Не удалось проверить промокод');
+    }
+}
+
+// ===== SUBMIT ORDER + PAYMENT =====
+async function submitForm() {
+    var submitBtn = document.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Создание заказа...';
+
+    var hasAccount = document.getElementById('toggle-has').classList.contains('active');
+    var user = getTgUser();
+
+    var accountData = {};
+    if (hasAccount) {
+        accountData = {
+            login: document.getElementById('form-login').value,
+            password: document.getElementById('form-password').value,
+            comment: document.getElementById('form-comment').value
+        };
+    } else {
+        accountData = {
+            email: document.getElementById('form-email').value,
+            comment: document.getElementById('form-comment2').value
+        };
     }
 
-    function submitForm() {
-        const hasAccount = document.getElementById('toggle-has').classList.contains('active');
-        let data = { service: currentService, months: currentMonths, price: currentPrice, hasAccount };
+    var monthText = currentMonths === 1 ? 'мес' : 'мес';
+    var productName = currentService === 'spotify'
+        ? 'Spotify ' + currentMonths + ' ' + monthText
+        : 'ChatGPT Plus 1 мес';
 
-        if (hasAccount) {
-            data.login = document.getElementById('form-login').value;
-            data.password = document.getElementById('form-password').value;
-            data.comment = document.getElementById('form-comment').value;
-        } else {
-            data.email = document.getElementById('form-email').value;
-            data.comment = document.getElementById('form-comment2').value;
+    var orderData = {
+        productName: productName,
+        price: currentPrice,
+        finalPrice: currentFinalPrice || currentPrice,
+        promoCode: currentPromoCode || null,
+        discount: currentDiscount || 0,
+        accountType: hasAccount ? 'existing' : 'new',
+        accountData: accountData,
+        telegramUserId: String(user.id),
+        telegramUsername: user.username || null
+    };
+
+    try {
+        // 1. Create order
+        var orderResp = await fetch(API_BASE + '/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
+        var orderResult = await orderResp.json();
+        if (!orderResult.success) throw new Error('Order creation failed');
+
+        // 2. Create payment link
+        submitBtn.textContent = 'Перенаправление на оплату...';
+        var payResp = await fetch(API_BASE + '/api/payment/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: orderResult.order.id })
+        });
+        var payResult = await payResp.json();
+        if (!payResult.success) throw new Error('Payment link creation failed');
+
+        // 3. Save orderId and redirect to payment on same page
+        localStorage.setItem('pending_order_id', orderResult.order.id);
+        window.location.href = payResult.paymentUrl;
+
+    } catch(e) {
+        console.error('Submit error:', e);
+        alert('Ошибка создания заказа. Попробуйте снова.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Отправить';
+    }
+}
+
+// ===== LOAD REAL ORDERS =====
+async function loadOrders() {
+    var user = getTgUser();
+    var container = document.getElementById('orders-list');
+    container.innerHTML = '<div style="text-align:center;padding:40px 0;color:#fff;opacity:0.5;">Загрузка...</div>';
+
+    try {
+        var resp = await fetch(API_BASE + '/api/orders?telegramUserId=' + encodeURIComponent(String(user.id)));
+        var orders = await resp.json();
+
+        if (orders.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:40px 0;"><div style="font-size:48px;margin-bottom:12px;">📦</div><div style="color:#fff;opacity:0.5;font-size:16px;font-weight:500;">Заказов пока нет</div></div>';
+            return;
         }
 
-        if (tg) tg.sendData(JSON.stringify(data));
-        if (window.PuzzleBot) window.PuzzleBot.sendCommand(JSON.stringify(data));
-        showScreen('screen-success');
-    }
+        var statusText = {
+            awaiting_payment: 'ожидает оплаты',
+            paid: 'оплачен',
+            in_progress: 'в работе',
+            done: 'готов',
+            cancelled: 'отменён'
+        };
+        var statusClass = {
+            awaiting_payment: 'pending',
+            paid: 'pending',
+            in_progress: 'pending',
+            done: 'ready',
+            cancelled: 'cancelled'
+        };
 
-    function applyPromo(service) {
-        const input = document.getElementById('promo-' + service);
-        const code = input.value.trim();
-        if (!code) return;
-        alert('Промокод "' + code + '" применён');
+        container.innerHTML = orders.map(function(o) {
+            var date = new Date(o.createdAt).toLocaleDateString('ru-RU');
+            var st = statusText[o.status] || o.status;
+            var sc = statusClass[o.status] || 'pending';
+            return '<div class="order-card">' +
+                '<div class="order-info">' +
+                    '<span class="order-title">' + o.productName + '</span>' +
+                    '<span class="order-status ' + sc + '">' + st + '</span>' +
+                '</div>' +
+                '<span class="order-date">' + date + '</span>' +
+            '</div>';
+        }).join('');
+    } catch(e) {
+        console.error('Load orders error:', e);
+        container.innerHTML = '<div style="text-align:center;padding:40px 0;color:#fff;opacity:0.5;">Ошибка загрузки</div>';
     }
+}
 
-    function toggleFaq(card) {
-        const faqItem = card.closest('.faq-item');
-        const answer = faqItem.querySelector('.faq-answer');
-        const toggle = card.querySelector('.faq-toggle');
-        
-        if (answer && toggle) {
-            answer.classList.toggle('open');
-            toggle.classList.toggle('active');
-        }
+// ===== FAQ =====
+function toggleFaq(card) {
+    var faqItem = card.closest('.faq-item');
+    var answer = faqItem.querySelector('.faq-answer');
+    var toggle = card.querySelector('.faq-toggle');
+    if (answer && toggle) {
+        answer.classList.toggle('open');
+        toggle.classList.toggle('active');
     }
+}
 
-    function openSupport() {
-        if (tg) tg.openTelegramLink('https://t.me/spotitop_support');
-        else window.open('https://t.me/spotitop_support', '_blank');
-    }
-    function openPrivacy() {
-        if (tg) tg.openLink('https://spotitop.ru/privacy');
-        else window.open('https://spotitop.ru/privacy', '_blank');
-    }
-    function openOffer() {
-        if (tg) tg.openLink('https://spotitop.ru/offer');
-        else window.open('https://spotitop.ru/offer', '_blank');
-    }
+// ===== EXTERNAL LINKS =====
+function openSupport() {
+    if (tg) tg.openTelegramLink('https://t.me/spotitop_support');
+    else window.open('https://t.me/spotitop_support', '_blank');
+}
+function openPrivacy() {
+    if (tg) tg.openLink('https://spotitop.ru/privacy');
+    else window.open('https://spotitop.ru/privacy', '_blank');
+}
+function openOffer() {
+    if (tg) tg.openLink('https://spotitop.ru/offer');
+    else window.open('https://spotitop.ru/offer', '_blank');
+}
+
+// ===== PAYMENT RETURN CHECK =====
+if (window.location.search.includes('payment=success')) {
+    showScreen('screen-success');
+    history.replaceState(null, '', window.location.pathname);
+}
 </script>
 
 </body>

@@ -1,3 +1,10 @@
 {
-    "framework": null
+    "framework": null,
+    "rewrites": [
+        { "source": "/api/promo/validate", "destination": "/api/promo/validate" },
+        { "source": "/api/payment/create", "destination": "/api/payment/create" },
+        { "source": "/api/orders", "destination": "/api/orders" },
+        { "source": "/api/promo", "destination": "/api/promo" },
+        { "source": "/api/webhook", "destination": "/api/webhook" }
+    ]
 }
