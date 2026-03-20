@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spotitop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://puzzlebot.top/webapp.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html { height: 100%; }
+        body {
+            font-family: 'Suisse Intl', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            min-height: 100%;
+            color: #fff;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            background: #4360F6;
+            position: relative;
+            letter-spacing: -0.05em;
+        }
+
+        /* ===== MUSIC NOTE TEXTURE ===== */
+        .texture {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0.58;
+        }
+        .texture .note {
+            position: absolute;
+            opacity: 0.3;
+            background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+            user-select: none;
+        }
+        .texture .note.s1 { font-size: 583px; }
+        .texture .note.s2 { font-size: 243px; }
+        .texture .note.s3 { font-size: 174px; }
+
+        /* ===== SCREENS ===== */
+        .screen {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 10px;
+            padding-bottom: 32px;
+            position: relative;
+            z-index: 1;
+        }
+        .screen.active {
+            display: flex;
+            animation: fadeUp 0.3s ease forwards;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== LOGO ===== */
+        .logo {
+            font-family: 'Benzin', 'Inter', sans-serif;
+            font-size: 22px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.38;
+            letter-spacing: 0;
+        }
+        .logo .green { color: #00D755; }
+        .logo-home {
+            font-size: 28px;
+            font-weight: 900;
+        }
+
+        /* Header with back + logo right */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 36px;
+            min-height: 56px;
+        }
+        .header .logo {
+            margin-left: auto;
+        }
+
+        /* ===== SUBTITLE ===== */
+        .subtitle {
+            font-size: 15px;
+            font-weight: 450;
+            color: #fff;
+            opacity: 0.5;
+            margin-bottom: 20px;
+            margin-top: 2px;
+        }
+
+        /* ===== BACK BUTTON ===== */
+        .back-btn {
+            width: 54px;
+            height: 54px;
+            cursor: pointer;
+            background: #fff;
+            border: none;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .back-btn svg {
+            width: 12px;
+            height: 20px;
+        }
+
+        /* ===== MAIN SCREEN ===== */
+        .home-screen {
+            position: relative;
+            overflow: hidden;
+            padding: 0 !important;
+            height: 100vh;
+            height: 100dvh;
+        }
+        .home-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 0 10px;
+            z-index: 4;
+        }
+        .home-top .logo {
+            position: absolute;
+            top: 30px;
+            left: 27px;
+        }
+        .home-top .subtitle {
+            position: absolute;
+            top: 64px;
+            left: 27px;
+        }
+        .home-top .product-card.spotify {
+            position: absolute;
+            top: 94px;
+            left: 10px;
+            width: calc(100% - 20px);
+            max-width: 370px;
+        }
+        .home-top .product-card.chatgpt {
+            position: absolute;
+            top: 176px;
+            left: 10px;
+            width: calc(100% - 20px);
+            max-width: 370px;
+        }
+        .mascot-main {
+            position: absolute;
+            top: 27.8%;
+            left: 50%;
+            transform: translateX(-46%);
+            width: 108%;
+            max-width: 430px;
+            height: auto;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .home-bottom {
+            position: absolute;
+            bottom: 3.2%;
+            left: 10px;
+            right: 10px;
+            z-index: 2;
+        }
+
+        /* ===== PRODUCT CARDS ===== */
+        .product-card {
+            position: relative;
+            width: 100%;
+            height: 76px;
+            border-radius: 17.4px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            margin-bottom: 0;
+            cursor: pointer;
+            overflow: visible;
+            transition: transform 0.15s ease;
+        }
+        .product-card:active { transform: scale(0.97); }
+        .product-card.spotify { background: #00D755; }
+        .product-card.chatgpt { background: #353A45; }
+        .product-card .card-bg {
+            position: absolute;
+            inset: 0;
+            border-radius: 17.4px;
+            overflow: hidden;
+        }
+        .product-card .card-mask {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: auto;
+            pointer-events: none;
+        }
+        .product-card .card-text {
+            font-size: 23px;
+            font-weight: 600;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+        .product-card .chevron {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .product-card .chevron svg {
+            width: 9px;
+            height: 15px;
+            fill: none;
+            stroke: #202020;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ===== SMALL BUTTONS ===== */
+        .small-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 11px;
+            row-gap: 14px;
+        }
+        .small-btn {
+            position: relative;
+            height: 70px;
+            border-radius: 17.4px;
+            display: flex;
+           
+            padding: 5px 15px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.15s ease;
+        }
+        .small-btn:active { transform: scale(0.95); }
+        .small-btn.white { background: #fff; }
+        .small-btn.yellow { background: #FFF9CF; }
+        .small-btn .btn-icon {
+            width: auto;
+            height: 65px;
+            position: absolute;
+            right: -6px;
+            bottom: -8px;
+        }
+        .small-btn .btn-text {
+            font-size: 21px;
+            font-weight: 600;
+            color: #202020;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== SUBSCRIPTION LIST ===== */
+        .section-label {
+            font-size: 22px;
+            font-weight: 450;
+            color: #fff;
+            opacity: 0.5;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            padding-left: 12px;
+        }
+
+        .sub-card {
+            position: relative;
+            width: 100%;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 22px 22px 18px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.15s ease;
+            min-height: 132px;
+        }
+        .sub-card:active { transform: scale(0.97); }
+        .sub-card .sub-mask {
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            height: calc(100% + 20px);
+            width: auto;
+            pointer-events: none;
+        }
+        .sub-card .sub-title {
+            font-size: 21px;
+            font-weight: 600;
+            color: #202020;
+            position: relative;
+            z-index: 1;
+        }
+        .sub-card .sub-price {
+            font-size: 24.5px;
+            font-weight: 700;
+            color: #202020;
+            position: relative;
+            z-index: 1;
+            margin-top: 6px;
+        }
+        .sub-card .sub-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+            width: fit-content;
+        }
+        .sub-card .sub-per-month {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 8px;
+            background: #04AA76;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+            width: fit-content;
+        }
+        .sub-badges {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .sub-card.m1 { background: #fff; }
+        .sub-card.m1 .sub-badge { background: #4A59FF; }
+
+        .sub-card.m3 { background: #FFFBE5; }
+        .sub-card.m3 .sub-badge { background: #D24AFF; }
+
+        .sub-card.m6 { background: #F8FFFE; }
+        .sub-card.m6 .sub-badge { background: #FF744A; }
+
+        .sub-card.m12 { background: #DDFFEB; }
+        .sub-card.m12 .sub-badge { background: #09AA00; }
+
+        /* ===== DETAIL SCREEN ===== */
+        .detail-card {
+            position: relative;
+            width: 100%;
+            border-radius: 20px;
+            background: #fff;
+            padding: 22px;
+            overflow: hidden;
+        }
+        .detail-card .detail-mask {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: auto;
+            pointer-events: none;
+        }
+        .detail-card .detail-title {
+            font-size: 21px;
+            font-weight: 600;
+            color: #202020;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+        .detail-card .detail-desc {
+            font-size: 12px;
+            font-weight: 500;
+            color: #202020;
+            opacity: 0.7;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            margin-top: 4px;
+        }
+        .detail-card .detail-price {
+            font-size: 24.5px;
+            font-weight: 700;
+            color: #202020;
+            position: relative;
+            z-index: 1;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .detail-mascot {
+            width: 100%;
+            max-width: 932px;
+            height: auto;
+            display: block;
+            margin: 10px auto -35px;
+            position: relative;
+            z-index: -22;
+        }
+
+        /* ===== PROMO CODE ===== */
+        .promo-block {
+            background: #fff;
+            border-radius: 20px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .promo-input {
+            flex: 1;
+            background: #F9F9F9;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #202020;
+            font-family: inherit;
+            letter-spacing: -0.05em;
+            outline: none;
+        }
+        .promo-input::placeholder { color: #202020; opacity: 0.3; }
+        .promo-apply {
+            font-size: 12px;
+            font-weight: 700;
+            color: #555;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            letter-spacing: -0.05em;
+            white-space: nowrap;
+        }
+
+        /* ===== PAY BUTTON ===== */
+        .pay-btn {
+            width: 100%;
+            height: 69px;
+            background: #00D755;
+            border-radius: 20px;
+            border: none;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            letter-spacing: -0.05em;
+            transition: transform 0.15s ease;
+            margin-top: 14px;
+        }
+        .pay-btn:active { transform: scale(0.97); }
+
+        /* ===== FORM ===== */
+        .form-block {
+            background: #fff;
+            border-radius: 20px;
+            padding: 18px;
+        }
+        .form-mascot {
+            width: 100%;
+            max-width: 340px;
+            height: auto;
+            display: block;
+            margin: 10px auto -55px;
+            position: relative;
+            z-index: 0;
+        }
+
+        .account-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 14px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            letter-spacing: -0.05em;
+            transition: all 0.2s ease;
+        }
+        .toggle-btn.active {
+            background: #4222D2;
+            color: #fff;
+            border-radius: 10px;
+        }
+        .toggle-btn.inactive {
+            background: #F9F9F9;
+            color: #000;
+            opacity: 0.8;
+        }
+
+        .form-input {
+            width: 100%;
+            background: #F9F9F9;
+            border: none;
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #202020;
+            font-family: inherit;
+            letter-spacing: -0.05em;
+            outline: none;
+            margin-bottom: 10px;
+        }
+        .form-input::placeholder { color: #202020; opacity: 0.5; }
+        .form-input:last-child { margin-bottom: 0; }
+
+        .submit-btn {
+            width: 100%;
+            height: 60px;
+            background: #00D755;
+            border-radius: 20px;
+            border: none;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            letter-spacing: -0.05em;
+            transition: transform 0.15s ease;
+            margin-top: 14px;
+            z-index: 10;
+        }
+        .submit-btn:active { transform: scale(0.97); }
+
+        /* ===== ORDERS ===== */
+        .order-card {
+            position: relative;
+            width: 100%;
+            height: 68px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 0 18px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .order-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #202020;
+            position: relative;
+            z-index: 1;
+        }
+        .order-date {
+            font-size: 12px;
+            font-weight: 600;
+            color: #202020;
+            opacity: 0.3;
+            position: absolute;
+            right: 18px;
+            top: 14px;
+            z-index: 1;
+        }
+        /* .order-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+            margin-top: 2px;
+
+        } */
+        .order-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+            margin-top: 2px;
+            width: fit-content;
+            min-width: fit-content;
+            max-width: 100%;
+            white-space: nowrap;
+        }
+        .order-status.ready { background: #04AA1D; }
+        .order-status.cancelled { background: #D9420A; }
+        .order-status.pending { background: #FF9F3F; }
+        .order-info { display: flex; flex-direction: column; }
+
+        /* ===== FAQ ===== */
+        .faq-card {
+            position: relative;
+            width: 100%;
+            min-height: 68px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            background: #fff;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            justify-content: space-between;
+        }
+        .faq-card .faq-question {
+            font-size: 18px;
+            font-weight: 600;
+            color: #202020;
+            position: relative;
+            z-index: 1;
+            line-height: 1.2;
+            flex: 1;
+            padding-right: 15px;
+        }
+        .faq-card .faq-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: #202020;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            z-index: 2;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .faq-card .faq-toggle.active {
+            background: #4222D2;
+        }
+        .faq-card .faq-toggle .plus,
+        .faq-card .faq-toggle .minus {
+            width: 8px;
+            height: 8px;
+            position: relative;
+            display: block;
+        }
+        .faq-card .faq-toggle .plus::before,
+        .faq-card .faq-toggle .plus::after,
+        .faq-card .faq-toggle .minus::before {
+            content: '';
+            position: absolute;
+            background-color: white;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .faq-card .faq-toggle .plus::before {
+            width: 8px;
+            height: 2px;
+        }
+        .faq-card .faq-toggle .plus::after {
+            width: 2px;
+            height: 8px;
+        }
+        .faq-card .faq-toggle .minus::before {
+            width: 8px;
+            height: 2px;
+        }
+        .faq-card .faq-toggle .minus {
+            display: none;
+        }
+        .faq-card .faq-toggle.active .plus {
+            display: none;
+        }
+        .faq-card .faq-toggle.active .minus {
+            display: block;
+        }
+        .faq-answer {
+            display: none;
+            background: #fff;
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-top: -4px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 450;
+            color: #202020;
+            line-height: 1.4;
+        }
+        .faq-answer.open {
+            display: block;
+        }
+        /* ===== HELP ===== */
+        .help-card {
+            position: relative;
+            width: 100%;
+            height: 97px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 0 22px;
+            margin-bottom: 14px;
+            /* overflow: hidden; - закомментировать или удалить */
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            z-index: 1;
+        }
+        .help-card:active { transform: scale(0.97); }
+        .help-card .help-mask {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: auto;
+            pointer-events: none;
+        }
+        .help-card.support { background: #E8FFED; }
+        .help-card.privacy { background: #fff; }
+        .help-card.offer { background: #fff; }
+        .help-card .help-title {
+            font-size: 21px;
+            font-weight: 600;
+            color: #202020;
+            position: relative;
+            z-index: 1;
+            line-height: 1.15;
+        }
+        .help-card .help-arrow {
+            width: 30px;
+            height: 30px;
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10; /* просто число побольше */
+        }
+
+        .info-block {
+            width: 100%;
+            height: 80px;
+            border-radius: 20px;
+            background: #5174FF;
+            display: flex;
+            align-items: center;
+            padding: 0 22px;
+            margin-bottom: 51px;
+        }
+        .info-block .info-text {
+            font-size: 21px;
+            font-weight: 450;
+            color: #fff;
+            line-height: 1.15;
+        }
+
+        /* ===== SUCCESS ===== */
+        /* .success-block {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px 22px;
+            text-align: center;
+            margin-top: 40px;
+        } */
+        .success-block {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px 22px;
+            text-align: center;
+            margin: 40px auto 0;  /* изменено: auto по бокам */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 90%;  /* или фиксированная ширина, например 350px */
+            max-width: 400px;
+            position: relative;
+            left: 0;
+            right: 0;
+        }
+        .success-circle {
+            width: 132px;
+            height: 132px;
+            border-radius: 50%;
+            background: #00D755;
+            border: 5px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .success-circle img { width: 34px; height: 25px; }
+        .success-title {
+            font-size: 27px;
+            font-weight: 600;
+            color: #202020;
+            margin-bottom: 10px;
+        }
+        .success-desc {
+            font-size: 15px;
+            font-weight: 500;
+            color: #202020;
+            opacity: 0.7;
+            margin-bottom: 24px;
+            line-height: 1.3;
+        }
+        .success-btn {
+            width: 100%;
+            height: 52px;
+            border-radius: 15px;
+            border: none;
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            letter-spacing: -0.05em;
+            margin-bottom: 10px;
+            transition: transform 0.15s ease;
+        }
+        .success-btn:active { transform: scale(0.97); }
+        .success-btn.green { background: #00D755; }
+        .success-btn.purple { background: #4222D2; }
+
+        /* ===== BOTTOM SPACER ===== */
+        .bottom-spacer { height: 40px; }
+
+    </style>
+</head>
+<body>
+
+<!-- Music note texture -->
+<div class="texture">
+    <span class="note s1" style="top: -200px; left: -150px;">&#9834;</span>
+    <span class="note s1" style="top: -100px; left: 100px;">&#9834;</span>
+    <span class="note s1" style="top: 50px; left: -50px;">&#9834;</span>
+    <span class="note s1" style="top: 200px; left: 150px;">&#9834;</span>
+    <span class="note s2" style="top: 100px; right: -30px;">&#9834;</span>
+    <span class="note s2" style="top: 300px; left: 20px;">&#9834;</span>
+    <span class="note s2" style="top: 450px; right: 50px;">&#9834;</span>
+    <span class="note s3" style="top: 500px; left: -20px;">&#9834;</span>
+    <span class="note s3" style="top: 600px; right: 0;">&#9834;</span>
+    <span class="note s3" style="top: 700px; left: 80px;">&#9834;</span>
+</div>
+
+<!-- SVG chevron template -->
+<svg style="display:none">
+    <symbol id="chevron-right" viewBox="0 0 8 14">
+        <path d="M1 1L7 7L1 13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </symbol>
+    <symbol id="chevron-left" viewBox="0 0 10 18">
+        <path d="M9 1L1 9L9 17" stroke="#202020" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </symbol>
+</svg>
+
+<!-- ==================== SCREEN: HOME ==================== -->
+<div class="screen active home-screen" id="screen-home">
+    <div class="home-top">
+        <div class="logo logo-home">Spoti<span class="green">top</span></div>
+        <div class="subtitle">Подписки на любимые сервисы</div>
+
+        <!-- Spotify Card -->
+        <div class="product-card spotify" onclick="showScreen('screen-spotify-plans')">
+            <div class="card-bg"><img class="card-mask" src="assets/card-spotify-mask.svg" alt=""></div>
+            <span class="card-text">Выбрать подписку Spotify</span>
+            <div class="chevron"><svg viewBox="0 0 8 14" width="9" height="15" fill="none" stroke="#202020" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1L7 7L1 13"/></svg></div>
+        </div>
+
+        <!-- ChatGPT Card -->
+        <div class="product-card chatgpt" onclick="showScreen('screen-chatgpt-detail')">
+            <div class="card-bg"><img class="card-mask" src="assets/card-chatgpt-mask.svg" alt=""></div>
+            <span class="card-text">Подписка на ChatGPT</span>
+            <div class="chevron"><svg viewBox="0 0 8 14" width="9" height="15" fill="none" stroke="#202020" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1L7 7L1 13"/></svg></div>
+        </div>
+    </div>
+
+    <!-- Big mascot -->
+    <img class="mascot-main" src="assets/mascot-main.png" alt="">
+
+    <!-- Bottom buttons -->
+    <div class="home-bottom">
+        <div class="small-buttons">
+            <div class="small-btn white" onclick="showScreen('screen-help')">
+                <span class="btn-text">Помощь</span>
+                <img class="btn-icon" src="assets/icon-help.svg" alt="">
+            </div>
+            <div class="small-btn white" onclick="showScreen('screen-faq')">
+                <span class="btn-text">FAQ</span>
+                <img class="btn-icon" src="assets/icon-faq.svg" alt="">
+            </div>
+            <div class="small-btn yellow" onclick="showScreen('screen-reviews')">
+                <span class="btn-text">Отзывы</span>
+                <img class="btn-icon" src="assets/icon-reviews.svg" alt="">
+            </div>
+            <div class="small-btn white" onclick="showScreen('screen-orders')">
+                <span class="btn-text">Заказы</span>
+                <img class="btn-icon" src="assets/icon-orders.svg" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== SCREEN: SPOTIFY PLANS ==================== -->
+<div class="screen" id="screen-spotify-plans">
+    <div class="header">
+        <button class="back-btn" onclick="showScreen('screen-home')">
+            <svg><use href="#chevron-left"/></svg>
+        </button>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+    <div class="section-label">подписки</div>
+
+    <div class="sub-card m1" onclick="openDetail('spotify', 1, 999)">
+        <span class="sub-title">Spotify 1 месяц</span>
+        <span class="sub-price">999 ₽</span>
+        <div class="sub-badges">
+            <span class="sub-badge">подходит для теста</span>
+        </div>
+        <img class="sub-mask" src="assets/sub-1month-mask.svg" alt="">
+    </div>
+
+    <div class="sub-card m3" onclick="openDetail('spotify', 3, 1999)">
+        <span class="sub-title">Spotify 3 месяца</span>
+        <span class="sub-price">1 999 ₽</span>
+        <div class="sub-badges">
+            <span class="sub-per-month">599 ₽ / месяц</span>
+            <span class="sub-badge">популярно</span>
+        </div>
+        <img class="sub-mask" src="assets/sub-3month-mask.svg" alt="">
+    </div>
+
+    <div class="sub-card m6" onclick="openDetail('spotify', 6, 2999)">
+        <span class="sub-title">Spotify 6 месяцев</span>
+        <span class="sub-price">2 999 ₽</span>
+        <div class="sub-badges">
+            <span class="sub-per-month">499 ₽ / месяц</span>
+            <span class="sub-badge">удобно</span>
+        </div>
+        <img class="sub-mask" src="assets/sub-6month-mask.svg" alt="">
+    </div>
+
+    <div class="sub-card m12" onclick="openDetail('spotify', 12, 3999)">
+        <span class="sub-title">Spotify 12 месяцев</span>
+        <span class="sub-price">3 999 ₽</span>
+        <div class="sub-badges">
+            <span class="sub-per-month">399 ₽ / месяц</span>
+            <span class="sub-badge">выгодно</span>
+        </div>
+        <img class="sub-mask" src="assets/sub-12month-mask.svg" alt="">
+    </div>
+</div>
+
+<!-- ==================== SCREEN: SPOTIFY DETAIL ==================== -->
+<!-- ==================== SCREEN: SPOTIFY DETAIL ==================== -->
+<div class="screen" id="screen-spotify-detail">
+    <div class="header">
+        <button class="back-btn" onclick="showScreen('screen-spotify-plans')">
+            <svg><use href="#chevron-left"/></svg>
+        </button>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+
+    <div class="detail-card" id="detail-card-spotify">
+        <div class="detail-title" id="detail-title-spotify">Spotify 1 месяц</div>
+        <div class="detail-desc" id="detail-desc-spotify">Подписка Spotify Premium<br>на 1 месяц</div>
+        <div class="detail-price" id="detail-price-spotify">999 ₽</div>
+        <img class="detail-mask" src="assets/detail-1month-mask.svg" alt="">
+    </div>
+
+    <div class="promo-block">
+        <input class="promo-input" type="text" id="promo-spotify" placeholder="Введите промокод">
+        <button class="promo-apply" onclick="applyPromo('spotify')">Применить</button>
+    </div>
+
+    <img class="detail-mascot" id="detail-mascot-spotify" src="assets/sp1.png" alt="">
+
+
+    <button class="pay-btn" id="pay-btn-spotify" onclick="goToForm('spotify')">Оплатить 999 ₽</button>
+</div>
+<!-- ==================== SCREEN: CHATGPT DETAIL ==================== -->
+<div class="screen" id="screen-chatgpt-detail">
+    <div class="header">
+        <button class="back-btn" onclick="showScreen('screen-home')">
+            <svg><use href="#chevron-left"/></svg>
+        </button>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+
+    <div class="detail-card" style="background: #353A45;">
+        <div class="detail-title" style="color: #fff;">ChatGPT Plus 1 месяц</div>
+        <div class="detail-desc" style="color: #fff;">Подписка ChatGPT Plus<br>на 1 месяц</div>
+        <div class="detail-price" style="color: #fff;">2 999 ₽</div>
+        <img class="detail-mask" src="assets/detail-chatgpt-mask.svg" alt="">
+    </div>
+
+    <div class="promo-block">
+        <input class="promo-input" type="text" id="promo-chatgpt" placeholder="Введите промокод">
+        <button class="promo-apply" onclick="applyPromo('chatgpt')">Применить</button>
+    </div>
+
+    <img class="detail-mascot" src="assets/mascot-chatgpt.png" alt="">
+
+
+    <button class="pay-btn" onclick="goToForm('chatgpt')">Оплатить 2 999 ₽</button>
+</div>
+
+<!-- ==================== SCREEN: FORM ==================== -->
+<div class="screen" id="screen-form">
+    <div class="header">
+        <div style="width:56px"></div>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+
+    <div class="form-block">
+        <div class="account-toggle">
+            <button class="toggle-btn active" id="toggle-has" onclick="toggleAccount(true)">Есть аккаунт</button>
+            <button class="toggle-btn inactive" id="toggle-no" onclick="toggleAccount(false)">Нет аккаунта</button>
+        </div>
+
+        <div id="form-has-account">
+            <input class="form-input" type="email" id="form-login" placeholder="Логин (почта) от аккаунта Spotify">
+            <input class="form-input" type="password" id="form-password" placeholder="Пароль">
+            <input class="form-input" type="text" id="form-comment" placeholder="Комментарий">
+        </div>
+
+        <div id="form-no-account" style="display: none;">
+            <input class="form-input" type="email" id="form-email" placeholder="Ваша почта">
+            <input class="form-input" type="text" id="form-comment2" placeholder="Комментарий">
+        </div>
+    </div>
+
+    <img class="form-mascot" src="assets/mascot-form.png" alt="">
+
+    <button class="submit-btn" onclick="submitForm()">Отправить</button>
+</div>
+
+<!-- ==================== SCREEN: ORDERS ==================== -->
+<div class="screen" id="screen-orders">
+    <div class="header">
+        <button class="back-btn" onclick="showScreen('screen-home')">
+            <svg><use href="#chevron-left"/></svg>
+        </button>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+
+    <div id="orders-list">
+        <div class="order-card">
+            <div class="order-info">
+                <span class="order-title">Spotify 3 месяца</span>
+                <span class="order-status ready">готов</span>
+            </div>
+            <span class="order-date">10.03.2026</span>
+        </div>
+        <div class="order-card">
+            <div class="order-info">
+                <span class="order-title">Spotify 12 месяцев</span>
+                <span class="order-status cancelled">отменен</span>
+            </div>
+            <span class="order-date">05.02.2025</span>
+        </div>
+        <div class="order-card">
+            <div class="order-info">
+                <span class="order-title">Spotify 6 месяцев</span>
+                <span class="order-status pending">выполняется</span>
+            </div>
+            <span class="order-date">05.02.2023</span>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== SCREEN: FAQ ==================== -->
+<div class="screen" id="screen-faq">
+    <div class="header">
+        <button class="back-btn" onclick="showScreen('screen-home')">
+            <svg><use href="#chevron-left"/></svg>
+        </button>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-card" onclick="toggleFaq(this)">
+            <span class="faq-question">Каким образом Вы подключаете подписку?</span>
+            <button class="faq-toggle">
+                <span class="plus"></span>
+                <span class="minus"></span>
+            </button>
+        </div>
+        <div class="faq-answer">
+            Мы заходим через твой аккаунт, устанавливаем нужный регион и подключаем премиум подписку, при этом наш Telegram-бот сам отслеживает время до конца подписки и оповещает тебя!
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-card" onclick="toggleFaq(this)">
+            <span class="faq-question">Что делать, если у меня нет аккаунта Spotify?</span>
+            <button class="faq-toggle">
+                <span class="plus"></span>
+                <span class="minus"></span>
+            </button>
+        </div>
+        <div class="faq-answer">
+            Ничего страшного! При оформлении заказа выберите "Нет аккаунта" — мы создадим его для вас и отправим данные для входа.
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-card" onclick="toggleFaq(this)">
+            <span class="faq-question">Сохраняется ли моя музыка при покупке у Вас?</span>
+            <button class="faq-toggle">
+                <span class="plus"></span>
+                <span class="minus"></span>
+            </button>
+        </div>
+        <div class="faq-answer">
+            Да, вся ваша библиотека, плейлисты и сохранённые треки остаются на месте. Мы только подключаем Premium-подписку.
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-card" onclick="toggleFaq(this)">
+            <span class="faq-question">Какой регион будет у моего аккаунта после покупки?</span>
+            <button class="faq-toggle">
+                <span class="plus"></span>
+                <span class="minus"></span>
+            </button>
+        </div>
+        <div class="faq-answer">
+            Регион будет установлен в зависимости от доступных вариантов. Обычно это регион, в котором подписка стоит дешевле, при этом весь контент доступен.
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-card" onclick="toggleFaq(this)">
+            <span class="faq-question">Сколько времени занимает подключение?</span>
+            <button class="faq-toggle">
+                <span class="plus"></span>
+                <span class="minus"></span>
+            </button>
+        </div>
+        <div class="faq-answer">
+            Обычно подключение занимает от 5 минут до нескольких часов в зависимости от загрузки. Мы стараемся сделать всё максимально быстро!
+        </div>
+    </div>
+</div>
+<!-- ==================== SCREEN: HELP ==================== -->
+<div class="screen" id="screen-help">
+    <div class="header">
+        <button class="back-btn" onclick="showScreen('screen-home')">
+            <svg><use href="#chevron-left"/></svg>
+        </button>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+
+    <div class="help-card support" onclick="openSupport()">
+        <span class="help-title">Написать<br>в поддержку</span>
+        <img class="help-mask" src="assets/support-mask.svg" alt="">
+        <img class="help-arrow" src="assets/arrow-right.svg" alt="">
+    </div>
+
+    <div class="info-block">
+        <span class="info-text">График работы поддержки:<br>с 10:00 до 22:00</span>
+    </div>
+
+    <div class="help-card privacy" onclick="openPrivacy()">
+        <span class="help-title">Политика<br>конфиденциальности</span>
+        <img class="help-mask" src="assets/privacy-mask.svg" alt="">
+        <img class="help-arrow" src="assets/arrow-right.svg" alt="">
+    </div>
+
+    <div class="help-card offer" onclick="openOffer()">
+        <span class="help-title">Политика<br>оферты</span>
+        <img class="help-mask" src="assets/offer-mask.svg" alt="">
+        <img class="help-arrow" src="assets/arrow-right.svg" alt="">
+    </div>
+</div>
+
+<!-- ==================== SCREEN: REVIEWS ==================== -->
+<div class="screen" id="screen-reviews">
+    <div class="header">
+        <button class="back-btn" onclick="showScreen('screen-home')">
+            <svg><use href="#chevron-left"/></svg>
+        </button>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+    <div class="section-label">Отзывы скоро появятся</div>
+</div>
+
+<!-- ==================== SCREEN: SUCCESS ==================== -->
+<div class="screen" id="screen-success">
+    <div class="header">
+        <div style="width:56px"></div>
+        <div class="logo">Spoti<span class="green">top</span></div>
+    </div>
+
+    <div class="success-block">
+        <div class="success-circle">
+            <img src="assets/checkmark.svg" alt="">
+        </div>
+        <div class="success-title">Заявка отправлена!</div>
+        <div class="success-desc">Менеджер обработает заказ и свяжется с Вами в личных сообщениях</div>
+        <button class="success-btn green" onclick="showScreen('screen-home')">На главную</button>
+        <button class="success-btn purple" onclick="openSupport()">Написать в поддержку</button>
+    </div>
+</div>
+
+<script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+        tg.ready();
+        tg.expand();
+        try { tg.setHeaderColor('#4360F6'); } catch(e) {}
+        try { tg.setBackgroundColor('#4360F6'); } catch(e) {}
+    }
+
+    let currentScreen = 'screen-home';
+    let currentService = 'spotify';
+    let currentMonths = 1;
+    let currentPrice = 999;
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        currentScreen = id;
+        window.scrollTo(0, 0);
+    }
+
+    function openDetail(service, months, price) {
+        currentService = service;
+        currentMonths = months;
+        currentPrice = price;
+        const monthText = months === 1 ? 'месяц' : months < 5 ? 'месяца' : 'месяцев';
+
+        if (service === 'spotify') {
+            document.getElementById('detail-title-spotify').textContent = `Spotify ${months} ${monthText}`;
+            document.getElementById('detail-desc-spotify').innerHTML = `Подписка Spotify Premium<br>на ${months} ${monthText}`;
+            document.getElementById('detail-price-spotify').textContent = price.toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('pay-btn-spotify').textContent = `Оплатить ${price.toLocaleString('ru-RU')} ₽`;
+            
+            // Меняем картинку в зависимости от количества месяцев
+            const mascotImg = document.getElementById('detail-mascot-spotify');
+            if (months === 1) {
+                mascotImg.src = 'assets/sp1.png';
+            } else if (months === 3) {
+                mascotImg.src = 'assets/sp3.png';
+            } else if (months === 6) {
+                mascotImg.src = 'assets/sp6.png';
+            } else if (months === 12) {
+                mascotImg.src = 'assets/sp12.png';
+            }
+            
+            showScreen('screen-spotify-detail');
+        }
+    }
+
+    function goToForm(service) {
+        currentService = service;
+        const loginInput = document.getElementById('form-login');
+        loginInput.placeholder = service === 'spotify'
+            ? 'Логин (почта) от аккаунта Spotify'
+            : 'Логин (почта) от аккаунта';
+        showScreen('screen-form');
+    }
+
+    function toggleAccount(hasAccount) {
+        const btnHas = document.getElementById('toggle-has');
+        const btnNo = document.getElementById('toggle-no');
+        const formHas = document.getElementById('form-has-account');
+        const formNo = document.getElementById('form-no-account');
+
+        if (hasAccount) {
+            btnHas.className = 'toggle-btn active';
+            btnNo.className = 'toggle-btn inactive';
+            formHas.style.display = 'block';
+            formNo.style.display = 'none';
+        } else {
+            btnHas.className = 'toggle-btn inactive';
+            btnNo.className = 'toggle-btn active';
+            formHas.style.display = 'none';
+            formNo.style.display = 'block';
+        }
+    }
+
+    function submitForm() {
+        const hasAccount = document.getElementById('toggle-has').classList.contains('active');
+        let data = { service: currentService, months: currentMonths, price: currentPrice, hasAccount };
+
+        if (hasAccount) {
+            data.login = document.getElementById('form-login').value;
+            data.password = document.getElementById('form-password').value;
+            data.comment = document.getElementById('form-comment').value;
+        } else {
+            data.email = document.getElementById('form-email').value;
+            data.comment = document.getElementById('form-comment2').value;
+        }
+
+        if (tg) tg.sendData(JSON.stringify(data));
+        if (window.PuzzleBot) window.PuzzleBot.sendCommand(JSON.stringify(data));
+        showScreen('screen-success');
+    }
+
+    function applyPromo(service) {
+        const input = document.getElementById('promo-' + service);
+        const code = input.value.trim();
+        if (!code) return;
+        alert('Промокод "' + code + '" применён');
+    }
+
+    function toggleFaq(card) {
+        const faqItem = card.closest('.faq-item');
+        const answer = faqItem.querySelector('.faq-answer');
+        const toggle = card.querySelector('.faq-toggle');
+        
+        if (answer && toggle) {
+            answer.classList.toggle('open');
+            toggle.classList.toggle('active');
+        }
+    }
+
+    function openSupport() {
+        if (tg) tg.openTelegramLink('https://t.me/spotitop_support');
+        else window.open('https://t.me/spotitop_support', '_blank');
+    }
+    function openPrivacy() {
+        if (tg) tg.openLink('https://spotitop.ru/privacy');
+        else window.open('https://spotitop.ru/privacy', '_blank');
+    }
+    function openOffer() {
+        if (tg) tg.openLink('https://spotitop.ru/offer');
+        else window.open('https://spotitop.ru/offer', '_blank');
+    }
+</script>
+
+</body>
+</html>
