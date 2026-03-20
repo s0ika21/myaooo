@@ -50,7 +50,7 @@ exports.handler = async (event) => {
                 status: "awaiting_payment"
             };
             const { data, error } = await db.from("orders").insert(order).select().single();
-            if (error) return cors(500, { error: error.message });
+            if (error) return cors(500, { error: error.message, code: error.code, details: error.details, hint: error.hint, status: error.status });
 
             // Return camelCase for frontend
             return cors(201, { success: true, order: toCamel(data) });
