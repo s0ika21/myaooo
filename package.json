@@ -1,11 +1,5 @@
 {
     "name": "spotibot",
     "version": "1.0.0",
-    "private": true,
-    "dependencies": {
-        "@supabase/supabase-js": "^2.47.0"
-    },
-    "devDependencies": {
-        "serve": "^14.2.6"
-    }
+    "private": true
 }

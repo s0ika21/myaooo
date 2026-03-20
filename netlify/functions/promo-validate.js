@@ -1,4 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
+const db = require("./db");
 
 function cors(statusCode, body) {
     return {
@@ -21,10 +21,9 @@ exports.handler = async (event) => {
         const { code, price } = JSON.parse(event.body);
         if (!code || !price) return cors(400, { error: "code and price are required" });
 
-        const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-        const { data: promo, error } = await db.from("promos").select("*").eq("code", code.toUpperCase()).single();
+        const promo = await db.selectOne("promos", "code", code.toUpperCase());
 
-        if (error || !promo) return cors(400, { error: "Promo code not found" });
+        if (!promo) return cors(400, { error: "Promo code not found" });
         if (!promo.active) return cors(400, { error: "Promo code is inactive" });
         if (promo.expires_at && new Date(promo.expires_at) < new Date()) {
             return cors(400, { error: "Promo code has expired" });

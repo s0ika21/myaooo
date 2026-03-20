@@ -1,4 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
+const db = require("./db");
 
 function cors(statusCode, body) {
     return {
@@ -13,30 +13,14 @@ function cors(statusCode, body) {
     };
 }
 
-function getDb() {
-    return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-}
-
 exports.handler = async (event) => {
     try {
         if (event.httpMethod === "OPTIONS") return cors(200, "");
 
-        // Debug: check env vars
-        if (event.queryStringParameters && event.queryStringParameters.debug === "1") {
-            return cors(200, {
-                hasUrl: !!process.env.SUPABASE_URL,
-                urlPrefix: (process.env.SUPABASE_URL || "").substring(0, 20),
-                hasKey: !!process.env.SUPABASE_KEY,
-                keyPrefix: (process.env.SUPABASE_KEY || "").substring(0, 20)
-            });
-        }
-
-        const db = getDb();
-
         if (event.httpMethod === "POST") {
             const body = JSON.parse(event.body);
             const id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-            const order = {
+            const row = {
                 id,
                 product_name: body.productName,
                 price: body.price,
@@ -49,28 +33,22 @@ exports.handler = async (event) => {
                 telegram_username: body.telegramUsername || null,
                 status: "awaiting_payment"
             };
-            const { data, error } = await db.from("orders").insert(order).select().single();
-            if (error) return cors(500, { error: error.message, code: error.code, details: error.details, hint: error.hint, status: error.status });
-
-            // Return camelCase for frontend
+            const data = await db.insert("orders", row);
             return cors(201, { success: true, order: toCamel(data) });
         }
 
         if (event.httpMethod === "GET") {
             const params = event.queryStringParameters || {};
-            let query = db.from("orders").select("*").order("created_at", { ascending: false });
-            if (params.telegramUserId) query = query.eq("telegram_user_id", params.telegramUserId);
-            if (params.status) query = query.eq("status", params.status);
-            const { data, error } = await query;
-            if (error) return cors(500, { error: error.message });
+            const eq = {};
+            if (params.telegramUserId) eq.telegram_user_id = params.telegramUserId;
+            if (params.status) eq.status = params.status;
+            const data = await db.select("orders", { eq, order: "created_at.desc" });
             return cors(200, data.map(toCamel));
         }
 
         if (event.httpMethod === "PATCH") {
             const body = JSON.parse(event.body);
-            const { id, status } = body;
-            const { data, error } = await db.from("orders").update({ status }).eq("id", id).select().single();
-            if (error) return cors(404, { error: "Not found" });
+            const data = await db.update("orders", { id: body.id }, { status: body.status });
             return cors(200, { success: true, order: toCamel(data) });
         }
 
@@ -81,6 +59,7 @@ exports.handler = async (event) => {
 };
 
 function toCamel(row) {
+    if (!row) return null;
     return {
         id: row.id,
         productName: row.product_name,

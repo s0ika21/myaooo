@@ -1,4 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
+const db = require("./db");
 
 function cors(statusCode, body) {
     return {
@@ -16,11 +16,9 @@ function cors(statusCode, body) {
 exports.handler = async (event) => {
     try {
         if (event.httpMethod === "OPTIONS") return cors(200, "");
-        const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
         if (event.httpMethod === "GET") {
-            const { data, error } = await db.from("promos").select("*").order("created_at", { ascending: false });
-            if (error) return cors(500, { error: error.message });
+            const data = await db.select("promos", { order: "created_at.desc" });
             return cors(200, data.map(toCamel));
         }
 
@@ -29,7 +27,7 @@ exports.handler = async (event) => {
             if (!body.code || !body.discountType || !body.discountValue) {
                 return cors(400, { error: "code, discountType, and discountValue are required" });
             }
-            const promo = {
+            const data = await db.insert("promos", {
                 code: body.code.toUpperCase(),
                 discount_type: body.discountType,
                 discount_value: body.discountValue,
@@ -37,17 +35,14 @@ exports.handler = async (event) => {
                 used_count: 0,
                 expires_at: body.expiresAt || null,
                 active: body.active !== undefined ? body.active : true
-            };
-            const { data, error } = await db.from("promos").upsert(promo).select().single();
-            if (error) return cors(500, { error: error.message });
+            });
             return cors(201, { success: true, promo: toCamel(data) });
         }
 
         if (event.httpMethod === "DELETE") {
             const { code } = JSON.parse(event.body);
             if (!code) return cors(400, { error: "code is required" });
-            const { error } = await db.from("promos").delete().eq("code", code.toUpperCase());
-            if (error) return cors(500, { error: error.message });
+            await db.del("promos", "code", code.toUpperCase());
             return cors(200, { success: true });
         }
 
@@ -61,8 +56,7 @@ exports.handler = async (event) => {
             if (fields.discountValue) update.discount_value = fields.discountValue;
             if (fields.maxUses !== undefined) update.max_uses = fields.maxUses;
             if (fields.expiresAt !== undefined) update.expires_at = fields.expiresAt;
-            const { data, error } = await db.from("promos").update(update).eq("code", code.toUpperCase()).select().single();
-            if (error) return cors(404, { error: "Promo not found" });
+            const data = await db.update("promos", { code: code.toUpperCase() }, update);
             return cors(200, { success: true, promo: toCamel(data) });
         }
 
@@ -73,6 +67,7 @@ exports.handler = async (event) => {
 };
 
 function toCamel(row) {
+    if (!row) return null;
     return {
         code: row.code,
         discountType: row.discount_type,

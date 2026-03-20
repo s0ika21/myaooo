@@ -1,4 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
+const db = require("./db");
 
 function cors(statusCode, body) {
     return {
@@ -21,16 +21,16 @@ exports.handler = async (event) => {
         const { orderId, transactionStatus } = JSON.parse(event.body);
         if (!orderId) return cors(200, { received: true, error: "No orderId" });
 
-        const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-        const { data: order, error } = await db.from("orders").select("*").eq("id", orderId).single();
-        if (error || !order) return cors(200, { received: true, error: "Order not found" });
+        const order = await db.selectOne("orders", "id", orderId);
+        if (!order) return cors(200, { received: true, error: "Order not found" });
 
         if (transactionStatus === "Paid") {
-            await db.from("orders").update({ status: "paid" }).eq("id", orderId);
+            await db.update("orders", { id: orderId }, { status: "paid" });
             if (order.promo_code) {
-                await db.from("promos")
-                    .update({ used_count: (order.used_count || 0) + 1 })
-                    .eq("code", order.promo_code);
+                const promo = await db.selectOne("promos", "code", order.promo_code);
+                if (promo) {
+                    await db.update("promos", { code: order.promo_code }, { used_count: (promo.used_count || 0) + 1 });
+                }
             }
         }
 

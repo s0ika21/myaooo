@@ -1,4 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
+const db = require("./db");
 
 function cors(statusCode, body) {
     return {
@@ -21,9 +21,8 @@ exports.handler = async (event) => {
         const { orderId } = JSON.parse(event.body);
         if (!orderId) return cors(400, { error: "orderId is required" });
 
-        const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-        const { data: order, error } = await db.from("orders").select("*").eq("id", orderId).single();
-        if (error || !order) return cors(404, { error: "Order not found" });
+        const order = await db.selectOne("orders", "id", orderId);
+        if (!order) return cors(404, { error: "Order not found" });
 
         const WATA_API = process.env.WATA_API_URL;
         const WATA_TOKEN = process.env.WATA_API_TOKEN;
@@ -54,10 +53,10 @@ exports.handler = async (event) => {
             return cors(502, { error: "Payment service error", details: wataData });
         }
 
-        await db.from("orders").update({
+        await db.update("orders", { id: orderId }, {
             wata_link_id: wataData.id,
             wata_payment_url: wataData.url
-        }).eq("id", orderId);
+        });
 
         return cors(200, {
             success: true,
