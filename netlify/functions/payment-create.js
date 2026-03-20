@@ -1,0 +1,70 @@
+const { getStore } = require("@netlify/blobs");
+
+function cors(statusCode, body) {
+    return {
+        statusCode,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST,OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization",
+            "Content-Type": "application/json"
+        },
+        body: typeof body === "string" ? body : JSON.stringify(body)
+    };
+}
+
+exports.handler = async (event) => {
+    if (event.httpMethod === "OPTIONS") return cors(200, "");
+    if (event.httpMethod !== "POST") return cors(405, { error: "Method not allowed" });
+
+    const { orderId } = JSON.parse(event.body);
+    if (!orderId) return cors(400, { error: "orderId is required" });
+
+    const store = getStore("orders");
+    let order;
+    try { order = await store.get(orderId, { type: "json" }); } catch {}
+    if (!order) return cors(404, { error: "Order not found" });
+
+    const WATA_API = process.env.WATA_API_URL;
+    const WATA_TOKEN = process.env.WATA_API_TOKEN;
+    const APP_URL = process.env.APP_URL;
+
+    if (!WATA_API || !WATA_TOKEN) {
+        return cors(500, { error: "Payment service not configured" });
+    }
+
+    try {
+        const response = await fetch(WATA_API + "/links", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + WATA_TOKEN
+            },
+            body: JSON.stringify({
+                amount: order.finalPrice,
+                currency: "RUB",
+                orderId: orderId,
+                description: order.productName,
+                successRedirectUrl: APP_URL + "?payment=success&orderId=" + orderId,
+                failRedirectUrl: APP_URL + "?payment=fail&orderId=" + orderId
+            })
+        });
+
+        const wataData = await response.json();
+        if (!response.ok) {
+            return cors(502, { error: "Payment service error", details: wataData });
+        }
+
+        order.wataLinkId = wataData.id;
+        order.wataPaymentUrl = wataData.url;
+        await store.setJSON(orderId, order);
+
+        return cors(200, {
+            success: true,
+            paymentUrl: wataData.url,
+            wataLinkId: wataData.id
+        });
+    } catch (err) {
+        return cors(502, { error: "Failed to contact payment service", details: err.message });
+    }
+};

@@ -1,0 +1,33 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/orders"
+  to = "/.netlify/functions/orders"
+  status = 200
+
+[[redirects]]
+  from = "/api/payment/create"
+  to = "/.netlify/functions/payment-create"
+  status = 200
+
+[[redirects]]
+  from = "/api/payment/check"
+  to = "/.netlify/functions/payment-check"
+  status = 200
+
+[[redirects]]
+  from = "/api/promo/validate"
+  to = "/.netlify/functions/promo-validate"
+  status = 200
+
+[[redirects]]
+  from = "/api/promo"
+  to = "/.netlify/functions/promo"
+  status = 200
+
+[[redirects]]
+  from = "/api/webhook"
+  to = "/.netlify/functions/webhook"
+  status = 200

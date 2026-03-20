@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "private": true,
     "dependencies": {
-        "@vercel/kv": "^2.0.0"
+        "@netlify/blobs": "^8.1.0"
     },
     "devDependencies": {
         "serve": "^14.2.6"
