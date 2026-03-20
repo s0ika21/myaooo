@@ -20,6 +20,17 @@ function getDb() {
 exports.handler = async (event) => {
     try {
         if (event.httpMethod === "OPTIONS") return cors(200, "");
+
+        // Debug: check env vars
+        if (event.queryStringParameters && event.queryStringParameters.debug === "1") {
+            return cors(200, {
+                hasUrl: !!process.env.SUPABASE_URL,
+                urlPrefix: (process.env.SUPABASE_URL || "").substring(0, 20),
+                hasKey: !!process.env.SUPABASE_KEY,
+                keyPrefix: (process.env.SUPABASE_KEY || "").substring(0, 20)
+            });
+        }
+
         const db = getDb();
 
         if (event.httpMethod === "POST") {
