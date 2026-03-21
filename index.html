@@ -163,11 +163,12 @@
         }
         .mascot-main {
             position: absolute;
-            top: 31vh;
+            top: 215px;
             left: 49%;
             transform: translateX(-46%);
-            height: 58vh;
-            width: auto;
+            width: 105%;
+            max-width: 415px;
+            height: auto;
             clip-path: inset(0 0 13% 0);
             z-index: 5;
             pointer-events: none;
@@ -965,6 +966,7 @@
             .small-btn { height: 64px; }
             .small-btn .btn-text { font-size: 19px; }
             .small-btn .btn-icon { height: 58px; }
+            .mascot-main { top: 210px; width: 85%; }
             .home-bottom { bottom: 3%; }
         }
 
@@ -979,6 +981,7 @@
             .small-btn { height: 56px; }
             .small-btn .btn-text { font-size: 17px; }
             .small-btn .btn-icon { height: 50px; }
+            .mascot-main { top: 168px; width: 78%; }
             .home-bottom { bottom: 2%; }
             .small-buttons { row-gap: 10px; column-gap: 8px; }
         }
@@ -1003,6 +1006,7 @@
         @media (min-height: 850px) and (max-width: 500px) {
             .home-top .product-card.spotify { top: 100px; }
             .home-top .product-card.chatgpt { top: 186px; }
+            .mascot-main { top: 234px; width: 111%; max-width: 467px; }
             .home-bottom { bottom: 3%; }
             .small-btn { height: 76px; }
             .small-btn .btn-text { font-size: 22px; }
